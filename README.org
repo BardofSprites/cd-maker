@@ -49,3 +49,6 @@ Then you can pop the playlist into a CD player and play the playlist.
 + [[https://asdf.common-lisp.dev/][ASDF]] (included in most Common Lisp implementations)
 + [[https://www.quicklisp.org/beta/][Quicklisp]]
 + [[https://github.com/fukamachi/id3v2][id3v2]]
+
+* Planned Features
++ [ ] determine length of tracks to not overload space on CD
