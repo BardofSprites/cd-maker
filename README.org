@@ -1,5 +1,7 @@
 #+TITLE: CD maker
 
+* Description
+
 A program to generate a file system for a cd using m3u playlists and mp3s. It is written in Common Lisp. 
 
 I was going to make this into a script, but is evolving to be a bit more than that, so it is getting its own repo.
@@ -41,3 +43,9 @@ The playlists will be structured like this:
 #+end_src
 
 Then you can pop the playlist into a CD player and play the playlist.
+
+* Program Dependencies
++ [[https://www.sbcl.org][SBCL]]
++ [[https://asdf.common-lisp.dev/][ASDF]] (included in most Common Lisp implementations)
++ [[https://www.quicklisp.org/beta/][Quicklisp]]
++ [[https://github.com/fukamachi/id3v2][id3v2]]
