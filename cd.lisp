@@ -2,6 +2,7 @@
 
 (asdf:load-system :uiop)
 (ql:quickload :id3v2)
+(ql:quickload :osicat)
 
 (defun count-lines (path)
   ;; count the number of lines in a file at `path`
@@ -37,6 +38,14 @@
           finally (return
                     (loop for album being the hash-keys of album-grouped
                           collect (list album (reverse (gethash album album-grouped))))))))
+
+(defun check-if-space (playlist-file)
+  (let ((songs (read-playlist playlist-file))
+        (total-size 0))
+    (dolist (file songs total-size)
+      (when (probe-file file)
+        (let ((file-size (osicat-posix:stat-size (osicat-posix:stat file))))
+          (incf total-size file-size))))))
 
 (defun copy-songs (songs idx dest-dir)
   ;; This function copies all songs in the same album to the album directory
