@@ -51,4 +51,4 @@ Then you can pop the playlist into a CD player and play the playlist.
 + [[https://github.com/fukamachi/id3v2][id3v2]]
 
 * Planned Features
-+ [ ] determine length of tracks to not overload space on CD
++ [ ] determine size of playlist to not overload space on CD
