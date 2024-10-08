@@ -25,19 +25,6 @@
         (format t "Playlist file doesn't exist: ~a~%" (uiop:native-namestring))
         (return-from read-playlist nil))))
 
-(defun read-playlist-debug (path)
-  (if (probe-file (uiop:native-namestring path))
-      (progn
-        (format t "File exists, do you want to print? (y/n): ")
-        (let ((response (read-line)))
-          (if (string= response "y")
-              (progn (format t "Printing the file...~%")
-                     (uiop:read-file-lines path))
-              (format t "File not printed.~%"))))
-      (progn
-        (format t "Playlist file doesn't exist: ~a~%" (uiop:native-namestring))
-        (return-from read-playlist nil))))
-
 (defun group-by-album (playlist-file)
   ;; returns a hash table of songs grouped by album
   ;; example: '((album-1 (song-1-from-album-1 song-2-from-album-1))
@@ -51,14 +38,28 @@
                     (loop for album being the hash-keys of album-grouped
                           collect (list album (reverse (gethash album album-grouped))))))))
 
-;; (defun create-fs (playlist-file)
-;;   (let* ((playlist-hash (group-by-album playlist-file))
-;;          (album-count (length playlist-hash))
-;;          ))
-;;   ;; create album directories
-;;   )
+(defun copy-songs (songs idx dest-dir)
+  ;; This function copies all songs in the same album to the album directory
+  (let* ((album (id3v2:mp3-album (id3v2:read-mp3-file (first songs))))
+         (album-dir (make-pathname :directory (list :relative (format nil "~2,'0d - ~a" idx album))))
+         (copy-dir (merge-pathnames album-dir dest-dir)))
+    ;; Ensure the album directory exists
+    (ensure-directories-exist copy-dir)
+    ;; Copy each song in the album to the album directory
+    (loop for song in songs
+          do (let* ((file-name (pathname-name (parse-namestring song)))
+                    (destination-file (merge-pathnames (make-pathname :name file-name :type "mp3") copy-dir)))
+               (uiop:copy-file song destination-file)))))
+
+(defun create-fs (playlist-file dest-path)
+  ;; Creates the directory structure as described in README.org
+  (let* ((playlist-list (group-by-album playlist-file))) ;; Assume list of album-song pairs
+    ;; Create album directories and copy songs
+    (loop for (album songs) in playlist-list
+          for idx from 1
+          do (copy-songs songs idx dest-path))))
 
 
-;; get all songs from hash (mapcan (lambda (album) (cadr album)) (group-by-album "~/Music/Playlists/playlist.m3u"))
+;; get all songs from hash (mapcan (lambda (album) (cadr album)) playlist-hash)
 
-;; get all albums from hash (mapcar 'cdr (group-by-album "~/Music/Playlists/playlist.m3u"))
+;; get all albums from hash (mapcar #'first playlist-hash)
