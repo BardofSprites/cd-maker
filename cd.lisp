@@ -4,20 +4,18 @@
 (ql:quickload :id3v2)
 (ql:quickload :osicat)
 
-(defun count-lines (path)
-  ;; count the number of lines in a file at `path`
-  (let ((lines (uiop:read-file-lines (uiop:native-namestring path)))
-        (count 0))
-    (dolist (line lines count)
-      (setf count (1+ count)))))
-
 (defun count-playlist (path)
-  (if (probe-file (uiop:native-namestring path))
-      (progn
-        (format t "Playlist found: ~A songs in playlist" (count-lines path)))
-      (progn
-        (format t "Playlist file doesn't exist: ~a~%" (uiop:native-namestring))
-        (return-from read-playlist nil))))
+  ;; counts number of 
+  (let ((count-lines (let ((lines (uiop:read-file-lines (uiop:native-namestring path)))
+                           (count 0))
+                       (dolist (line lines count)
+                         (setf count (1+ count))))))
+    (if (probe-file (uiop:native-namestring path))
+        (progn
+          (format t "Playlist found: ~A songs in playlist" (count-lines path)))
+        (progn
+          (format t "Playlist file doesn't exist: ~a~%" (uiop:native-namestring))
+          (return-from read-playlist nil)))))
 
 (defun read-playlist (path)
   (if (probe-file (uiop:native-namestring path))
@@ -40,15 +38,17 @@
                           collect (list album (reverse (gethash album album-grouped))))))))
 
 (defun check-if-space (playlist-file)
+  ;; returns size of all songs in `playlist` in megabytes
   (let ((songs (read-playlist playlist-file))
         (total-size 0))
     (dolist (file songs total-size)
       (when (probe-file file)
         (let ((file-size (osicat-posix:stat-size (osicat-posix:stat file))))
-          (incf total-size file-size))))))
+          (incf total-size (/ file-size 1024.0 1024.0)))))
+    total-size))
 
 (defun copy-songs (songs idx dest-dir)
-  ;; This function copies all songs in the same album to the album directory
+  ;; copies all songs in the same album to the album directory
   (let* ((album (id3v2:mp3-album (id3v2:read-mp3-file (first songs))))
          (album-dir (make-pathname :directory (list :relative (format nil "~2,'0d - ~a" idx album))))
          (copy-dir (merge-pathnames album-dir dest-dir)))
@@ -62,13 +62,10 @@
 
 (defun create-fs (playlist-file dest-path)
   ;; Creates the directory structure as described in README.org
-  (let* ((playlist-list (group-by-album playlist-file))) ;; Assume list of album-song pairs
-    ;; Create album directories and copy songs
+  (let* ((playlist-list (group-by-album playlist-file)))
     (loop for (album songs) in playlist-list
           for idx from 1
           do (copy-songs songs idx dest-path))))
 
-
-;; get all songs from hash (mapcan (lambda (album) (cadr album)) playlist-hash)
-
-;; get all albums from hash (mapcar #'first playlist-hash)
+;; main function
+;; ask for playlist, count songs, create file system
